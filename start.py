@@ -33,8 +33,11 @@ def start(bot, update):
         # bot.sendMessage(chat_id=update.message.chat_id, text=str(t), reply_markup=reply)
 
 def giveAnswer (bot, update):
-    print(update)
+    print('[giveAnswer]:')
     query = update.callback_query
+    print('[giveAnswer]' +query.message.text)
+    query = update.callback_query
+    #print(update.message.chat.username+' [giveAnswer]'+'\r\n'+query.message.text+'\r\n')
     t='<b>'+query.message.text+'</b> \r\n'+Db().GetByColumnName('db_001.db', 'T_Question_Answer', 'id',query.data)[0][2]
     bot.edit_message_text(text=t,
                           chat_id=query.message.chat_id,
@@ -50,8 +53,7 @@ def search(update, table, column):
         justMmm += temp
     r = []
 
-    for resByWordArr in list(set(
-            justMmm)):  # TODO:[[][][]] #list(set(resAllWords)) - все вопросы которые сматчились в поиске предыдущем, ни не повторяются
+    for resByWordArr in list(set(justMmm)): #list(set(resAllWords)) - все вопросы которые сматчились в поиске предыдущем, ни не повторяются
         for resArr in resByAllWordsArr:  # []
             for machedQuestion in resArr:
                 if (machedQuestion == resByWordArr):
@@ -78,14 +80,22 @@ def word_cleaner(lst):
     lst = lst.replace(',', '').replace('!', '').replace('?', '').replace('-', '').replace('.', '')
     lst = lst.split(' ')
 
+    counter = 0
     for souz in except_words:
-        lst = [Porter.stem(x) for x in lst if souz != x]
+        for x in lst:
+            if souz != x:
+                try:
+                    lst.replace(x, Porter.stem(x))
+                except AttributeError:
+                    counter += 1
+            else:
+                lst.remove(x)
 
     return lst
     # todo count maches
 
 
-# @kai7_bot
+# @kai7_bot 
 updater = Updater(token='461661232:AAExDNSsp3zQfL3oAovRhi3TVQKZWEJr7aI')  # тут токен, который выдал вам Ботский Отец!
 
 # start_handler = CommandHandler('', start)  # этот обработчик реагирует
