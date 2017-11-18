@@ -24,7 +24,7 @@ def start(bot, update):
     sort = sorted(results, key=lambda k: k['matchedCount'])[-3:]
     # выдаёт только ВопросОтвет
     # qwe=[]
-    for id, item in enumerate(sort):
+    for item in sort:
         # qwe.append(item['question'][1])
         t = item['question'][1]
         bot.sendMessage(chat_id=update.message.chat_id, text=str(t))
