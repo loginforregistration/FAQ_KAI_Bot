@@ -64,17 +64,18 @@ def search(cur, update, table, column):
     return r
 
 def word_cleaner(lst):
-        allsouz = ['и', 'да', 'также', 'тоже', 'а', 'но', 'зато', 'однако', 'однако же', 'все же', 'или', 'что',
-                   'чтобы', 'как', 'когда',
-                   'лишь', 'едва', 'чтобы', 'дабы', 'если', 'если бы', 'коли', 'хотя', 'хоть', 'пускай', 'как',
-                   'как будто',' ']
-        lst = lst.replace(',',' ').replace('!','').replace('?',' ').replace('-',' ')
-        lst = lst.split(' ')
+    except_words = ['', 'и', 'да', 'также', 'тоже', 'а', 'но', 'зато', 'однако', 'однако же', 'все же', 'или', 'что',
+               'чтобы', 'как', 'когда',
+               'лишь', 'едва', 'чтобы', 'дабы', 'если', 'если бы', 'коли', 'хотя', 'хоть', 'пускай', 'как',
+               'как будто', 'эт', 'бы']
 
-        for souz in allsouz:
-            lst = [Porter.stem(x) for x in lst if souz != x]
+    lst = lst.replace(',', '').replace('!', '').replace('?', '').replace('-', '').replace('.', '')
+    lst = lst.split(' ')
 
-        return lst
+    for souz in except_words:
+        lst = [Porter.stem(x) for x in lst if souz != x]
+
+    return lst
 
     # todo resOne= resArray.split(",")[1].split("'")[1]
     # todo count maches
