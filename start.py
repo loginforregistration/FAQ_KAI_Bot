@@ -5,6 +5,7 @@ from telegram.ext import MessageHandler
 from telegram.ext import RegexHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, bot,ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram.update import Update, Message
 import sqlite3
 import hashlib
 from cleaner import Porter
@@ -18,11 +19,11 @@ col_indx = (needed_column * 2) - 1
 
 
 
-def start(bot, update):
+def start(bot, update):# нам сёда пришел поисковый запрос от Юзера
     # подробнее об объекте update: https://core.telegram.org/bots/api#update
     print(update.message.chat.username)
 
-    results = search(update, "T_Question_Answer", "Question")# TODO: поменять бд
+    results = search(update.message.text, "T_Question_Answer", "Question")# TODO: поменять бд
     sort = sorted(results, key=lambda k: k['matchedCount'])[:3]
     # выдаёт только ВопросОтвет
     for item in sort:
@@ -30,6 +31,11 @@ def start(bot, update):
         reply = InlineKeyboardMarkup(keyboard)
         t = item['question'][1]
         update.message.reply_text(str(t), reply_markup=reply)
+        
+    gg= str(update.message.message_id)+';' + str(sort[0]['question'][0])+','+str(sort[1]['question'][0])+','+str(sort[2]['question'][0] )
+    keyboard = [[InlineKeyboardButton("Показать еще!", callback_data= gg)]]# TODO: ссылка на мессадж
+    reply = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text("____У нас есть еще:)_____", reply_markup=reply)
         # bot.sendMessage(chat_id=update.message.chat_id, text=str(t), reply_markup=reply)
 
 def giveAnswer (bot, update):
@@ -37,6 +43,12 @@ def giveAnswer (bot, update):
     query = update.callback_query
     print('[giveAnswer]' +query.message.text)
     query = update.callback_query
+
+    if query.find(';')!=-1:
+        bot.edit_message_text(text="Тра-ля ЛЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ",
+                            chat_id=query.message.chat_id,
+                            message_id=query.split(';')[0]), 
+
     #print(update.message.chat.username+' [giveAnswer]'+'\r\n'+query.message.text+'\r\n')
     t='<b>'+query.message.text+'</b> \r\n'+Db().GetByColumnName('db_001.db', 'T_Question_Answer', 'id',query.data)[0][2]
     bot.edit_message_text(text=t,
@@ -44,10 +56,10 @@ def giveAnswer (bot, update):
                           message_id=query.message.message_id, 
                           parse_mode=ParseMode.HTML)
 
-def search(update, table, column):
+def search(text, table, column):
     resByAllWordsArr = []  # [[][][]]
     justMmm = []
-    for word in word_cleaner(update.message.text):  # TODO: or 2 or 3 spaces
+    for word in word_cleaner(text):  # TODO: or 2 or 3 spaces
         temp = Db().search_by_word_with_like('db_001.db', table, column, word)
         resByAllWordsArr.append(temp)  # append добавляет мссив в первую ячейку
         justMmm += temp
@@ -107,5 +119,5 @@ updater.dispatcher.add_handler(CallbackQueryHandler(giveAnswer))
 updater.start_polling()  # поехали!
 
 #updater.idle()
-#input("started")
+input("started")
 
