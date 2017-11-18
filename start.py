@@ -7,20 +7,20 @@ import sqlite3
 import hashlib
 from cleaner import Porter
 from operator import attrgetter
-
+from Db import Db
 DB_FAQ_KAI = "db_001.db"
 
 needed_column = 2
 
 col_indx = (needed_column * 2) - 1
 
+db=Db(DB_FAQ_KAI)
 
 def start(bot, update):
     # подробнее об объекте update: https://core.telegram.org/bots/api#update
     print(update.message.chat.username)
-    con = sqlite3.connect(DB_FAQ_KAI)
-    cur = con.cursor()
-    results = search(cur, update, "About_military", "Question")
+    
+    results = search(update, "About_military", "Question")
     sort = sorted(results, key=lambda k: k['matchedCount'])[-3:]
     # выдаёт только ВопросОтвет
     # qwe=[]
@@ -28,18 +28,13 @@ def start(bot, update):
         # qwe.append(item['question'][1])
         t = item['question'][1]
         bot.sendMessage(chat_id=update.message.chat_id, text=str(t))
-    con.close()
+    
 
-
-def search(cur, update, table, column):
+def search(update, table, column):
     resByAllWordsArr = []  # [[][][]]
     justMmm = []
-    for word in str(update.message.text).split(" "):  # TODO: or 2 or 3 spaces
-        cur.execute("SELECT * "
-                    "FROM " + table + " "
-                                      "WHERE " + column + " LIKE '%" + stem(word) + "%'")
-        # resArray=
-        temp = cur.fetchall()
+    for word in word_cleaner(update.message.text):  # TODO: or 2 or 3 spaces
+        temp=db.search_by_word_with_like(table,column, word)
         resByAllWordsArr.append(temp)  # append добавляет мссив в первую ячейку
         justMmm += temp
     r = []
