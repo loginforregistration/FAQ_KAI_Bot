@@ -3,37 +3,49 @@ from telegram.ext import Updater  # пакет называется python-teleg
 from telegram.ext import CommandHandler  # модуль почему-то просто telegram ¯\_(ツ)_/¯
 from telegram.ext import MessageHandler
 from telegram.ext import RegexHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, bot,ParseMode
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 import sqlite3
 import hashlib
 from cleaner import Porter
 from operator import attrgetter
 from Db import Db
-import threading
+# import threading
 
-needed_column = 2
+needed_column = 2   
 
 col_indx = (needed_column * 2) - 1
+
 
 
 def start(bot, update):
     # подробнее об объекте update: https://core.telegram.org/bots/api#update
     print(update.message.chat.username)
 
-    results = search(update, "About_military", "Question")
-    sort = sorted(results, key=lambda k: k['matchedCount'])[-3:]
+    results = search(update, "T_Question_Answer", "Question")# TODO: поменять бд
+    sort = sorted(results, key=lambda k: k['matchedCount'])[:3]
     # выдаёт только ВопросОтвет
-    # qwe=[]
     for item in sort:
-        # qwe.append(item['question'][1])
+        keyboard = [[InlineKeyboardButton("Показать ответ:", callback_data=item['question'][0])]]
+        reply = InlineKeyboardMarkup(keyboard)
         t = item['question'][1]
-        bot.sendMessage(chat_id=update.message.chat_id, text=str(t))
+        update.message.reply_text(str(t), reply_markup=reply)
+        # bot.sendMessage(chat_id=update.message.chat_id, text=str(t), reply_markup=reply)
 
+def giveAnswer (bot, update):
+    print(update)
+    query = update.callback_query
+    t='<b>'+query.message.text+'</b> \r\n'+Db().GetByColumnName('db_001.db', 'T_Question_Answer', 'id',query.data)[0][2]
+    bot.edit_message_text(text=t,
+                          chat_id=query.message.chat_id,
+                          message_id=query.message.message_id, 
+                          parse_mode=ParseMode.HTML)
 
 def search(update, table, column):
     resByAllWordsArr = []  # [[][][]]
     justMmm = []
     for word in word_cleaner(update.message.text):  # TODO: or 2 or 3 spaces
-        temp = Db.search_by_word_with_like('db_001.db', table, column, word)
+        temp = Db().search_by_word_with_like('db_001.db', table, column, word)
         resByAllWordsArr.append(temp)  # append добавляет мссив в первую ячейку
         justMmm += temp
     r = []
@@ -70,8 +82,6 @@ def word_cleaner(lst):
         lst = [Porter.stem(x) for x in lst if souz != x]
 
     return lst
-
-    # todo resOne= resArray.split(",")[1].split("'")[1]
     # todo count maches
 
 
@@ -83,6 +93,9 @@ updater = Updater(token='461661232:AAExDNSsp3zQfL3oAovRhi3TVQKZWEJr7aI')  # ту
 start_handler = RegexHandler('.+', start)
 
 updater.dispatcher.add_handler(start_handler)  # регистрируем в госреестре обработчиков
+updater.dispatcher.add_handler(CallbackQueryHandler(giveAnswer))
 updater.start_polling()  # поехали!
 
-input()
+#updater.idle()
+#input("started")
+
