@@ -37,7 +37,7 @@ def search(cur, update, table, column):
     for word in str(update.message.text).split(" "):  # TODO: or 2 or 3 spaces
         cur.execute("SELECT * "
                     "FROM " + table + " "
-                                      "WHERE " + column + " LIKE '%" + word + "%'")
+                                      "WHERE " + column + " LIKE '%" + stem(word) + "%'")
         # resArray=
         temp = cur.fetchall()
         resByAllWordsArr.append(temp)  # append добавляет мссив в первую ячейку
