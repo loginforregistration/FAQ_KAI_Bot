@@ -8,18 +8,17 @@ import hashlib
 from cleaner import Porter
 from operator import attrgetter
 from Db import Db
-DB_FAQ_KAI = "db_001.db"
+import threading
 
 needed_column = 2
 
 col_indx = (needed_column * 2) - 1
 
-db=Db(DB_FAQ_KAI)
 
 def start(bot, update):
     # подробнее об объекте update: https://core.telegram.org/bots/api#update
     print(update.message.chat.username)
-    
+
     results = search(update, "About_military", "Question")
     sort = sorted(results, key=lambda k: k['matchedCount'])[-3:]
     # выдаёт только ВопросОтвет
@@ -28,13 +27,13 @@ def start(bot, update):
         # qwe.append(item['question'][1])
         t = item['question'][1]
         bot.sendMessage(chat_id=update.message.chat_id, text=str(t))
-    
+
 
 def search(update, table, column):
     resByAllWordsArr = []  # [[][][]]
     justMmm = []
     for word in word_cleaner(update.message.text):  # TODO: or 2 or 3 spaces
-        temp=db.search_by_word_with_like(table,column, word)
+        temp = Db.search_by_word_with_like('db_001.db', table, column, word)
         resByAllWordsArr.append(temp)  # append добавляет мссив в первую ячейку
         justMmm += temp
     r = []
@@ -85,4 +84,5 @@ start_handler = RegexHandler('.+', start)
 
 updater.dispatcher.add_handler(start_handler)  # регистрируем в госреестре обработчиков
 updater.start_polling()  # поехали!
-input("starting done")
+
+input()
