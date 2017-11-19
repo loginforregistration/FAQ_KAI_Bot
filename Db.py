@@ -7,9 +7,12 @@ class Db:
         self.db = sqlite3.connect(database)
         with self.db:
             cur = self.db.cursor()
-            cur.execute("SELECT * "
-                    "FROM " + table_name + " "
-                                      "WHERE " + column_where + " LIKE '%" + word + "%'")
+            try:
+                cur.execute("SELECT * "
+                        "FROM " + table_name + " "
+                                          "WHERE " + column_where + " LIKE '%" + word + "%'")
+            except sqlite3.OperationalError:
+                error = 1
             t=cur.fetchall()
             #self.db.close()
             return t
